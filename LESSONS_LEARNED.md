@@ -1,6 +1,6 @@
 # AI Assistant Context - Gitleaks Language Server
 
-**Purpose:** Prevent repeated mistakes and reduce AI exploration paths. Use this before making changes.
+**Purpose:** Prevent repeated mistakes and reduce AI exploration paths.
 
 ---
 
@@ -83,59 +83,10 @@ Conversion in `diagnostics.go:adjustColumn()` handles the off-by-one differences
 
 ---
 
-## Code Quality Checklist
-
-Before committing:
-```bash
-go fmt ./...
-golangci-lint run    # Config in .golangci.yml
-go test ./...        # Must maintain 70%+ coverage
-```
-
-Common lint fixes:
-- Type assertions: `x, ok := val.(Type)` not `x := val.(Type)`
-- Unused params: use `_` placeholder
-- String conversions: don't convert `string` to `string`
-
----
-
-## Architecture Quick Reference
-
-| File | Purpose |
-|------|---------|
-| `scanner.go` | Gitleaks wrapper, returns `[]Finding` |
-| `diagnostics.go` | `Finding` → LSP `Diagnostic` |
-| `handlers.go` | LSP lifecycle (didOpen, didSave, etc.) |
-| `workspace.go` | Parallel scanning + progress reporting |
-| `settings.go` | `diagnosticSeverity` config |
-| `uri.go` | Cross-platform `file://` handling |
-| `cache.go` | SHA-256 content hash → findings |
-
----
-
-## Performance Targets (All Met)
-
-| Operation | Target | Actual |
-|-----------|--------|--------|
-| Small file | <10ms | ~127µs |
-| Large file (500KB) | <200ms | ~198ms |
-| Cache hit | <1µs | ~108ns |
-
----
-
-## Don't Repeat These Mistakes
+## Common Mistakes to Avoid
 
 1. **Invalid test secrets** - Always validate with `gitleaks detect` CLI first
 2. **Wrong import path** - Use `zricethezav`, not `gitleaks`
 3. **Missing pointers** - LSP types need `&value` for optional fields
 4. **Unchecked type assertions** - Use `val, ok := x.(Type)` pattern
 5. **Platform-specific paths** - Use `uri.go` functions, not string manipulation
-
----
-
-## Supported Platforms
-
-- Linux, macOS, Windows
-- Go versions: 1.21, 1.22, 1.23
-
-**Last Updated:** 2025-12-05
