@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        go-version: ['1.21', '1.22', '1.23']
+        go-version: ['1.22', '1.23', '1.24']
     
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +33,7 @@ jobs:
         run: go test -v -race -coverprofile=coverage.out ./...
       
       - name: Check coverage threshold
-        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.23'
+        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.24'
         run: |
           COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print substr($3, 1, length($3)-1)}')
           echo "Coverage: $COVERAGE%"
@@ -43,7 +43,7 @@ jobs:
           fi
       
       - name: Upload coverage
-        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.23'
+        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.24'
         uses: actions/upload-artifact@v4
         with:
           name: coverage
@@ -58,7 +58,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
       
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
@@ -74,7 +74,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
       
       - name: Run benchmarks
         run: go test -bench=. -benchmem ./... | tee benchmark.txt
@@ -95,7 +95,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23'
+          go-version: '1.24'
       
       - name: Build Linux amd64
         run: GOOS=linux GOARCH=amd64 go build -o gitleaks-ls-linux-amd64
