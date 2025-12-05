@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      
+      - name: Run tests
+        run: go test -v ./...
+      
+      - name: Build binaries
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          
+          # Linux
+          GOOS=linux GOARCH=amd64 go build -ldflags "-X main.version=$VERSION" -o gitleaks-ls-linux-amd64
+          GOOS=linux GOARCH=arm64 go build -ldflags "-X main.version=$VERSION" -o gitleaks-ls-linux-arm64
+          
+          # macOS
+          GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=$VERSION" -o gitleaks-ls-darwin-amd64
+          GOOS=darwin GOARCH=arm64 go build -ldflags "-X main.version=$VERSION" -o gitleaks-ls-darwin-arm64
+          
+          # Windows
+          GOOS=windows GOARCH=amd64 go build -ldflags "-X main.version=$VERSION" -o gitleaks-ls-windows-amd64.exe
+          
+          # Create checksums
+          sha256sum gitleaks-ls-* > checksums.txt
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            gitleaks-ls-*
+            checksums.txt
+          generate_release_notes: true

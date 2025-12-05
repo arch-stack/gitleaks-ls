@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go-version: ['1.21', '1.22', '1.23']
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+      
+      - name: Download dependencies
+        run: go mod download
+      
+      - name: Build
+        run: go build -v ./...
+      
+      - name: Test
+        run: go test -v -race -coverprofile=coverage.out ./...
+      
+      - name: Check coverage threshold
+        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.23'
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print substr($3, 1, length($3)-1)}')
+          echo "Coverage: $COVERAGE%"
+          if (( $(echo "$COVERAGE < 70" | bc -l) )); then
+            echo "Coverage $COVERAGE% is below 70% threshold"
+            exit 1
+          fi
+      
+      - name: Upload coverage
+        if: matrix.os == 'ubuntu-latest' && matrix.go-version == '1.23'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.out
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+  benchmark:
+    name: Benchmark
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      
+      - name: Run benchmarks
+        run: go test -bench=. -benchmem ./... | tee benchmark.txt
+      
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark
+          path: benchmark.txt
+
+  build:
+    name: Build Binaries
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+      
+      - name: Build Linux amd64
+        run: GOOS=linux GOARCH=amd64 go build -o gitleaks-ls-linux-amd64
+      
+      - name: Build Linux arm64
+        run: GOOS=linux GOARCH=arm64 go build -o gitleaks-ls-linux-arm64
+      
+      - name: Build macOS amd64
+        run: GOOS=darwin GOARCH=amd64 go build -o gitleaks-ls-darwin-amd64
+      
+      - name: Build macOS arm64
+        run: GOOS=darwin GOARCH=arm64 go build -o gitleaks-ls-darwin-arm64
+      
+      - name: Build Windows amd64
+        run: GOOS=windows GOARCH=amd64 go build -o gitleaks-ls-windows-amd64.exe
+      
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: gitleaks-ls-*

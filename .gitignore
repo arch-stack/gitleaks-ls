@@ -1,0 +1,4 @@
+gitleaks-ls
+*.bak
+*.log
+coverage.out
