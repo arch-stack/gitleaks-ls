@@ -1,6 +1,8 @@
 module github.com/arch-stack/gitleaks-ls
 
-go 1.25.1
+go 1.24.0
+
+toolchain go1.24.4
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0
@@ -8,8 +10,8 @@ require (
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.11.1
-	github.com/tliron/commonlog v0.2.21
-	github.com/tliron/glsp v0.2.2
+	github.com/tliron/commonlog v0.2.19
+	github.com/tliron/glsp v0.2.1
 	github.com/zricethezav/gitleaks/v8 v8.29.1
 )
 
@@ -75,7 +77,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tetratelabs/wazero v1.9.0 // indirect
 	github.com/therootcompany/xz v1.0.1 // indirect
-	github.com/tliron/go-kutil v0.4.0 // indirect
+	github.com/tliron/kutil v0.3.27 // indirect
 	github.com/ulikunitz/xz v0.5.12 // indirect
 	github.com/wasilibs/go-re2 v1.9.0 // indirect
 	github.com/wasilibs/wazero-helpers v0.0.0-20240620070341-3dff1577cd52 // indirect
