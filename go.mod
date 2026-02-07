@@ -1,6 +1,6 @@
 module github.com/arch-stack/gitleaks-ls
 
-go 1.24.0
+go 1.25.4
 
 require (
 	github.com/fsnotify/fsnotify v1.9.0
@@ -10,7 +10,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tliron/commonlog v0.2.19
 	github.com/tliron/glsp v0.2.1
-	github.com/zricethezav/gitleaks/v8 v8.29.1
+	github.com/zricethezav/gitleaks/v8 v8.30.0
 )
 
 require (
