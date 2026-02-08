@@ -1,10 +1,10 @@
 ---
+name: upgrade-gitleaks
 description: Upgrade the gitleaks package to a newer version
 globs: go.mod, go.sum, scanner.go, config.go
-alwaysApply: false
 ---
 
-# Skill: Upgrade Gitleaks Package
+# Upgrade Gitleaks Package
 
 Use this procedure when upgrading the `github.com/zricethezav/gitleaks/v8` dependency.
 
