@@ -211,7 +211,7 @@ The `gitleaks.scanWorkspace` command:
 ## CI/CD
 
 GitHub Actions workflows in `.github/workflows/`:
-- `ci.yml` - Test matrix (Linux/macOS/Windows, Go 1.24-1.25), lint, benchmark, build
+- `ci.yml` - Test (Linux/macOS/Windows, Go 1.25), lint, benchmark, build
 - `release.yml` - Cross-platform binary releases on tag push
 
 **Coverage requirement:** 70% minimum (enforced in CI)

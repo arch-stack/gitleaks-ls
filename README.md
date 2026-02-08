@@ -65,7 +65,7 @@ Configure via your editor's LSP settings:
 
 ## Requirements
 
-- Go 1.24+
+- Go 1.25+
 - Any LSP-compatible editor (tested with Neovim)
 
 ### Supported Platforms
@@ -285,7 +285,7 @@ go test -bench=. ./...
 ## CI/CD
 
 The project uses GitHub Actions for:
-- **Test**: Matrix testing on Linux/macOS/Windows with Go 1.24-1.25
+- **Test**: Matrix testing on Linux/macOS/Windows with Go 1.25
 - **Lint**: golangci-lint with custom configuration
 - **Benchmark**: Performance regression detection
 - **Build**: Cross-platform binary artifacts
