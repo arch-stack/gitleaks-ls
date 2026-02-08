@@ -264,9 +264,7 @@ gitleaks-ls/
 
 ## Documentation
 
-- [PRD.md](./PRD.md) - Product Requirements Document
-- [DESIGN.md](./DESIGN.md) - Technical Design Document  
-- [LESSONS_LEARNED.md](./LESSONS_LEARNED.md) - Implementation notes for AI assistants
+- [AGENTS.md](./AGENTS.md) - AI agent guidelines and technical reference
 
 ## Contributing
 
