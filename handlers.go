@@ -316,7 +316,7 @@ func scanAndPublish(glspContext *glsp.Context, uri protocol.DocumentUri, content
 	} else {
 		// Scan for secrets using filesystem path for correct fingerprints
 		ctx := context.Background()
-		filename := uriToPath(string(uri))
+		filename := uriToPath(uri)
 		findings, err = globalServer.getScanner().ScanContent(ctx, filename, content)
 		if err != nil {
 			slog.Error("scan failed", "uri", uri, "error", err)

@@ -266,7 +266,7 @@ func scanAndPublishBench(ctx *mockGlspContext, uri protocol.DocumentUri, content
 		findings = cached
 	} else {
 		bgCtx := context.Background()
-		findings, err = globalServer.getScanner().ScanContent(bgCtx, string(uri), content)
+		findings, err = globalServer.getScanner().ScanContent(bgCtx, uri, content)
 		if err != nil {
 			return err
 		}

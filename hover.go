@@ -70,21 +70,21 @@ func formatHoverContent(f Finding) string {
 	var sb strings.Builder
 
 	// Title
-	sb.WriteString(fmt.Sprintf("# 🔐 Secret Detected: %s\n\n", f.RuleID))
+	fmt.Fprintf(&sb, "# 🔐 Secret Detected: %s\n\n", f.RuleID)
 
 	// Description
-	sb.WriteString(fmt.Sprintf("**Description**: %s\n\n", f.Description))
+	fmt.Fprintf(&sb, "**Description**: %s\n\n", f.Description)
 
 	// Details section
 	sb.WriteString("## Details\n\n")
-	sb.WriteString(fmt.Sprintf("- **Rule ID**: `%s`\n", f.RuleID))
-	sb.WriteString(fmt.Sprintf("- **Location**: Line %d, Column %d-%d\n", f.StartLine, f.StartColumn, f.EndColumn))
+	fmt.Fprintf(&sb, "- **Rule ID**: `%s`\n", f.RuleID)
+	fmt.Fprintf(&sb, "- **Location**: Line %d, Column %d-%d\n", f.StartLine, f.StartColumn, f.EndColumn)
 
 	if f.Entropy > 0 {
-		sb.WriteString(fmt.Sprintf("- **Entropy**: %.2f (randomness score)\n", f.Entropy))
+		fmt.Fprintf(&sb, "- **Entropy**: %.2f (randomness score)\n", f.Entropy)
 	}
 
-	sb.WriteString(fmt.Sprintf("- **Fingerprint**: `%s`\n", f.Fingerprint))
+	fmt.Fprintf(&sb, "- **Fingerprint**: `%s`\n", f.Fingerprint)
 	sb.WriteString("\n")
 
 	// Matched content (truncated if too long)
@@ -94,7 +94,7 @@ func formatHoverContent(f Finding) string {
 			match = match[:100] + "..."
 		}
 		sb.WriteString("**Matched Content**:\n")
-		sb.WriteString(fmt.Sprintf("```\n%s\n```\n\n", match))
+		fmt.Fprintf(&sb, "```\n%s\n```\n\n", match)
 	}
 
 	// Recommendations
@@ -111,7 +111,7 @@ func formatHoverContent(f Finding) string {
 	sb.WriteString("// gitleaks:allow\n")
 	sb.WriteString("```\n\n")
 	sb.WriteString("Or add the fingerprint to `.gitleaksignore`:\n")
-	sb.WriteString(fmt.Sprintf("```\n%s\n```\n", f.Fingerprint))
+	fmt.Fprintf(&sb, "```\n%s\n```\n", f.Fingerprint)
 
 	return sb.String()
 }

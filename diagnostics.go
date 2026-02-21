@@ -77,4 +77,3 @@ func formatDiagnosticMessage(f Finding) string {
 
 	return msg
 }
-
