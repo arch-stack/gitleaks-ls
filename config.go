@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
@@ -15,6 +16,7 @@ import (
 
 // Config manages gitleaks configuration
 type Config struct {
+	mu       sync.RWMutex
 	path     string
 	rootPath string // workspace root path
 	cfg      config.Config
@@ -79,12 +81,16 @@ func (c *Config) load() error {
 		cfg.Path = c.path
 	}
 
+	c.mu.Lock()
 	c.cfg = cfg
+	c.mu.Unlock()
 	return nil
 }
 
 // GetConfig returns the current gitleaks config
 func (c *Config) GetConfig() config.Config {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return c.cfg
 }
 

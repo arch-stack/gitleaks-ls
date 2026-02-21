@@ -115,5 +115,16 @@ func TestCache_Concurrent(t *testing.T) {
 	}
 
 	wg.Wait()
-	// No race conditions or panics
+
+	// Verify postconditions: cache should have entries and return correct data
+	assert.Greater(t, cache.Size(), 0, "Cache should have entries after concurrent writes")
+	assert.LessOrEqual(t, cache.Size(), 26, "Cache should have at most 26 entries (a-z)")
+
+	// Verify all cached entries return valid data
+	for i := 0; i < 26; i++ {
+		content := string(rune('a' + i))
+		if result, ok := cache.Get(content); ok {
+			assert.Equal(t, "rule", result[0].RuleID)
+		}
+	}
 }

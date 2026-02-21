@@ -78,9 +78,3 @@ func formatDiagnosticMessage(f Finding) string {
 	return msg
 }
 
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}

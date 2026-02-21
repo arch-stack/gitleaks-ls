@@ -1,6 +1,10 @@
 package main
 
-import protocol "github.com/tliron/glsp/protocol_3_16"
+import (
+	"sync"
+
+	protocol "github.com/tliron/glsp/protocol_3_16"
+)
 
 // Settings holds user-configurable options for the language server
 type Settings struct {
@@ -18,11 +22,18 @@ func DefaultSettings() *Settings {
 }
 
 // Global settings instance
-var serverSettings = DefaultSettings()
+var (
+	settingsMu     sync.RWMutex
+	serverSettings = DefaultSettings()
+)
 
 // GetDiagnosticSeverity returns the LSP severity based on settings
 func GetDiagnosticSeverity() protocol.DiagnosticSeverity {
-	switch serverSettings.DiagnosticSeverity {
+	settingsMu.RLock()
+	severity := serverSettings.DiagnosticSeverity
+	settingsMu.RUnlock()
+
+	switch severity {
 	case "error":
 		return protocol.DiagnosticSeverityError
 	case "warning":
@@ -41,6 +52,9 @@ func UpdateSettings(config map[string]interface{}) {
 	if config == nil {
 		return
 	}
+
+	settingsMu.Lock()
+	defer settingsMu.Unlock()
 
 	if gitleaks, ok := config["gitleaks"].(map[string]interface{}); ok {
 		if severity, ok := gitleaks["diagnosticSeverity"].(string); ok {

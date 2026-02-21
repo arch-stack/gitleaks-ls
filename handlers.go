@@ -15,10 +15,26 @@ import (
 
 // Server holds the language server state
 type Server struct {
+	mu        sync.RWMutex
 	scanner   *Scanner
 	documents *DocumentStore
 	config    *Config
 	cache     *Cache
+	cancel    context.CancelFunc
+}
+
+// getScanner returns the current scanner (thread-safe)
+func (s *Server) getScanner() *Scanner {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.scanner
+}
+
+// setScanner replaces the current scanner (thread-safe)
+func (s *Server) setScanner(scanner *Scanner) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.scanner = scanner
 }
 
 // DocumentStore tracks open documents and their diagnostics
@@ -55,13 +71,27 @@ func (ds *DocumentStore) Set(uri protocol.DocumentUri, version int32, content st
 	}
 }
 
-// Get retrieves a document
-func (ds *DocumentStore) Get(uri protocol.DocumentUri) (*Document, bool) {
+// Get retrieves a snapshot of a document (returns by value for thread safety)
+func (ds *DocumentStore) Get(uri protocol.DocumentUri) (Document, bool) {
 	ds.mu.RLock()
 	defer ds.mu.RUnlock()
 
 	doc, ok := ds.documents[uri]
-	return doc, ok
+	if !ok {
+		return Document{}, false
+	}
+	return *doc, ok
+}
+
+// SetDiagnostics atomically updates diagnostics and findings for a document
+func (ds *DocumentStore) SetDiagnostics(uri protocol.DocumentUri, diagnostics []protocol.Diagnostic, findings []Finding) {
+	ds.mu.Lock()
+	defer ds.mu.Unlock()
+
+	if doc, ok := ds.documents[uri]; ok {
+		doc.Diagnostics = diagnostics
+		doc.Findings = findings
+	}
 }
 
 // Delete removes a document
@@ -76,7 +106,13 @@ func (ds *DocumentStore) Delete(uri protocol.DocumentUri) {
 var globalServer *Server
 
 func SetupServer(rootPath string) error {
+	// Cancel previous watchers if re-initializing
+	if globalServer != nil && globalServer.cancel != nil {
+		globalServer.cancel()
+	}
+
 	cache := NewCache()
+	ctx, cancel := context.WithCancel(context.Background())
 
 	// Check for .gitleaksignore file
 	ignoreFilePath := findIgnoreFile(rootPath)
@@ -88,13 +124,14 @@ func SetupServer(rootPath string) error {
 				// Recreate scanner with ignore file on reload
 				ignoreFile := findIgnoreFile(rootPath)
 				newScanner := NewScannerWithIgnore(globalServer.config.GetConfig(), ignoreFile)
-				globalServer.scanner = newScanner
+				globalServer.setScanner(newScanner)
 			}
 			// Clear cache on config reload
 			globalServer.cache.Clear()
 		}
 	})
 	if err != nil {
+		cancel()
 		return err
 	}
 
@@ -105,18 +142,19 @@ func SetupServer(rootPath string) error {
 		documents: NewDocumentStore(),
 		config:    cfg,
 		cache:     cache,
+		cancel:    cancel,
 	}
 
 	// Start watching config file
 	go func() {
-		if err := cfg.Watch(context.Background()); err != nil {
+		if err := cfg.Watch(ctx); err != nil {
 			slog.Error("failed to watch config", "error", err)
 		}
 	}()
 
 	// Start watching ignore file if it exists
 	if ignoreFilePath != "" {
-		go watchIgnoreFile(rootPath, ignoreFilePath)
+		go watchIgnoreFile(ctx, rootPath, ignoreFilePath)
 	}
 
 	return nil
@@ -135,7 +173,7 @@ func findIgnoreFile(rootPath string) string {
 }
 
 // watchIgnoreFile watches .gitleaksignore for changes
-func watchIgnoreFile(rootPath, ignoreFilePath string) {
+func watchIgnoreFile(ctx context.Context, rootPath, ignoreFilePath string) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		slog.Error("failed to create ignore file watcher", "error", err)
@@ -154,6 +192,8 @@ func watchIgnoreFile(rootPath, ignoreFilePath string) {
 
 	for {
 		select {
+		case <-ctx.Done():
+			return
 		case event, ok := <-watcher.Events:
 			if !ok {
 				return
@@ -165,7 +205,7 @@ func watchIgnoreFile(rootPath, ignoreFilePath string) {
 					if globalServer != nil && globalServer.config != nil {
 						ignoreFile := findIgnoreFile(rootPath)
 						newScanner := NewScannerWithIgnore(globalServer.config.GetConfig(), ignoreFile)
-						globalServer.scanner = newScanner
+						globalServer.setScanner(newScanner)
 						globalServer.cache.Clear()
 					}
 				}
@@ -274,9 +314,10 @@ func scanAndPublish(glspContext *glsp.Context, uri protocol.DocumentUri, content
 		findings = cached
 		cacheHit = true
 	} else {
-		// Scan for secrets
+		// Scan for secrets using filesystem path for correct fingerprints
 		ctx := context.Background()
-		findings, err = globalServer.scanner.ScanContent(ctx, uri, content)
+		filename := uriToPath(string(uri))
+		findings, err = globalServer.getScanner().ScanContent(ctx, filename, content)
 		if err != nil {
 			slog.Error("scan failed", "uri", uri, "error", err)
 			return err
@@ -288,12 +329,8 @@ func scanAndPublish(glspContext *glsp.Context, uri protocol.DocumentUri, content
 	// Convert to diagnostics
 	diagnostics := FindingsToDiagnostics(findings)
 
-	// Store findings with diagnostics for hover support
-	doc, ok := globalServer.documents.Get(uri)
-	if ok {
-		doc.Diagnostics = diagnostics
-		doc.Findings = findings
-	}
+	// Store findings with diagnostics atomically for hover support
+	globalServer.documents.SetDiagnostics(uri, diagnostics, findings)
 
 	slog.Debug("scan complete",
 		"uri", uri,

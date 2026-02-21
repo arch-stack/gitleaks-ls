@@ -122,8 +122,6 @@ func TestPathToURI(t *testing.T) {
 }
 
 func TestScanWorkspace(t *testing.T) {
-	// Setup server
-	rootURI := "file:///tmp/test"
 	ctx := context.Background()
 
 	// Initialize server
@@ -164,8 +162,6 @@ func main() {}
 		}
 	}
 	assert.True(t, found, "Should find the AWS key secret")
-
-	_ = rootURI // unused but keeps the pattern consistent
 }
 
 func TestScanWorkspace_EmptyPath(t *testing.T) {

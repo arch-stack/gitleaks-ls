@@ -118,6 +118,9 @@ func initialized(context *glsp.Context, params *protocol.InitializedParams) erro
 
 func shutdown(context *glsp.Context) error {
 	slog.Info("shutting down")
+	if globalServer != nil && globalServer.cancel != nil {
+		globalServer.cancel()
+	}
 	protocol.SetTraceValue(protocol.TraceValueOff)
 	return nil
 }

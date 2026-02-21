@@ -12,7 +12,7 @@ func textDocumentHover(context *glsp.Context, params *protocol.HoverParams) (*pr
 	uri := params.TextDocument.URI
 	position := params.Position
 
-	// Get document
+	// Get document snapshot
 	doc, ok := globalServer.documents.Get(uri)
 	if !ok {
 		return nil, nil
@@ -22,7 +22,6 @@ func textDocumentHover(context *glsp.Context, params *protocol.HoverParams) (*pr
 	var finding *Finding
 	for i, diag := range doc.Diagnostics {
 		if positionInRange(position, diag.Range) {
-			// Get the corresponding finding
 			if i < len(doc.Findings) {
 				finding = &doc.Findings[i]
 				break

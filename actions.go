@@ -50,7 +50,7 @@ func createIgnoreAction(uri protocol.DocumentUri, diag protocol.Diagnostic, cont
 	}
 
 	// Get comment syntax for the file type
-	style := getCommentSyntax(uri)
+	style := getCommentSyntax(uriToPath(string(uri)))
 
 	// Create the comment to append
 	var comment string

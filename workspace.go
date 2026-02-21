@@ -244,20 +244,21 @@ func loadGitignore(rootPath string) *ignore.GitIgnore {
 	return gitignore
 }
 
+var binaryExts = map[string]bool{
+	".exe": true, ".dll": true, ".so": true, ".dylib": true,
+	".png": true, ".jpg": true, ".jpeg": true, ".gif": true, ".ico": true, ".webp": true,
+	".pdf": true, ".doc": true, ".docx": true, ".xls": true, ".xlsx": true,
+	".zip": true, ".tar": true, ".gz": true, ".rar": true, ".7z": true,
+	".bin": true, ".dat": true, ".db": true, ".sqlite": true,
+	".pyc": true, ".pyo": true, ".class": true,
+	".woff": true, ".woff2": true, ".ttf": true, ".eot": true,
+	".mp3": true, ".mp4": true, ".wav": true, ".avi": true, ".mov": true,
+	".o": true, ".a": true, ".lib": true,
+}
+
 // isBinaryExtension checks if a file has a known binary extension (fast pre-filter)
 func isBinaryExtension(name string) bool {
 	ext := strings.ToLower(filepath.Ext(name))
-	binaryExts := map[string]bool{
-		".exe": true, ".dll": true, ".so": true, ".dylib": true,
-		".png": true, ".jpg": true, ".jpeg": true, ".gif": true, ".ico": true, ".webp": true,
-		".pdf": true, ".doc": true, ".docx": true, ".xls": true, ".xlsx": true,
-		".zip": true, ".tar": true, ".gz": true, ".rar": true, ".7z": true,
-		".bin": true, ".dat": true, ".db": true, ".sqlite": true,
-		".pyc": true, ".pyo": true, ".class": true,
-		".woff": true, ".woff2": true, ".ttf": true, ".eot": true,
-		".mp3": true, ".mp4": true, ".wav": true, ".avi": true, ".mov": true,
-		".o": true, ".a": true, ".lib": true,
-	}
 	return binaryExts[ext]
 }
 

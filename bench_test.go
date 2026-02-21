@@ -266,7 +266,7 @@ func scanAndPublishBench(ctx *mockGlspContext, uri protocol.DocumentUri, content
 		findings = cached
 	} else {
 		bgCtx := context.Background()
-		findings, err = globalServer.scanner.ScanContent(bgCtx, uri, content)
+		findings, err = globalServer.getScanner().ScanContent(bgCtx, string(uri), content)
 		if err != nil {
 			return err
 		}
@@ -274,12 +274,7 @@ func scanAndPublishBench(ctx *mockGlspContext, uri protocol.DocumentUri, content
 	}
 
 	diagnostics := FindingsToDiagnostics(findings)
-
-	doc, ok := globalServer.documents.Get(uri)
-	if ok {
-		doc.Diagnostics = diagnostics
-		doc.Findings = findings
-	}
+	globalServer.documents.SetDiagnostics(uri, diagnostics, findings)
 
 	// Simulate notify (no-op)
 	ctx.Notify("textDocument/publishDiagnostics", nil)
